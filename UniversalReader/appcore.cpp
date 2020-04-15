@@ -3,7 +3,7 @@
 //
 
 #include "stdafx.h"
-#include "UniversalReader.h"
+#include "appcore.h"
 #include "UniversalReaderDlg.h"
 
 #ifdef _DEBUG

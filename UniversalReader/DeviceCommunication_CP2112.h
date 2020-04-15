@@ -82,6 +82,9 @@ struct st_CP2112WarnStatus
 extern HID_SMBUS_DEVICE g_hidSmbus;
 extern struct st_CP2112Conf g_stCP2112Conf;
 
+extern struct st_CP2112ErrStatus g_stCP2112ErrStatus;
+extern struct st_CP2112WarnStatus g_stCP2112WarnStatus;
+
 
 ////////////////////////////////////////////////////////////
 // prototypes
@@ -105,6 +108,8 @@ BYTE DeviceCP2112_ReadIIC_ForceResponceCheck(WORD usCount);
 // read
 BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS(BYTE ucSlaveAddr);
 BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, WORD usCount);
+BYTE DeviceCP2112_ReadIIC_RANDOM_ADDRESS(BYTE ucSlaveAddr, BYTE ucByteAddr);
+BYTE DeviceCP2112_ReadIIC_RANDOM_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, BYTE ucByteAddr, WORD usCount);
 
 // service
 void DeviceCP2112_OpenStatusUpdate();

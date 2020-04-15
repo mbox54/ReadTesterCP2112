@@ -10,6 +10,9 @@
 ////////////////////////////////////////////////////////////
 #include "afxwin.h"
 #include "DeviceCommunication_CP2112.h"	
+#include "resource.h"
+
+#include "ReadTesterDlg.h"
 
 
 ////////////////////////////////////////////////////////////
@@ -31,7 +34,7 @@ public:
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_UNIVERSALREADER_DIALOG };
+	enum { IDD_BOARD_SEL_DLG };
 #endif
 
 	protected:
@@ -70,6 +73,8 @@ protected:
 public:
 
 	int m_iRadio_BoardType;
+
+	void TryConnect(void);
 
 	afx_msg void OnDropdownComboDeviceList();
 	afx_msg void OnCloseupComboDeviceList();

@@ -3,19 +3,13 @@
 //
 
 #include "stdafx.h"
-#include "UniversalReader.h"
+#include "appcore.h"
 #include "UniversalReaderDlg.h"
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-/////////////////////////////////////////////////////////////////////////////
-// Library Dependencies
-#pragma comment(lib, "SLABHIDtoSMBus.lib")
-
-
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -59,12 +53,11 @@ END_MESSAGE_MAP()
 // CUniversalReaderDlg dialog
 
 CUniversalReaderDlg::CUniversalReaderDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(IDD_UNIVERSALREADER_DIALOG, pParent)
+	: CDialogEx(IDD_BOARD_SEL_DLG, pParent)
 	, m_iRadio_BoardType(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
-
 
 
 void CUniversalReaderDlg::DoDataExchange(CDataExchange* pDX)
@@ -326,37 +319,7 @@ BOOL CUniversalReaderDlg::Disconnect()
 }
 
 
-void CUniversalReaderDlg::OnDropdownComboDeviceList()
-{
-	// Automatically update the device list when the
-	// list is opened/dropped down
-	UpdateDeviceList();
-
-}
-
-
-void CUniversalReaderDlg::OnCloseupComboDeviceList()
-{
-	// TODO: 
-	CString		serial;
-	DWORD		deviceNum;
-
-	if (GetSelectedDevice(serial))
-	{
-		// If the selected device has been removed
-		if (!FindDevice(serial, deviceNum))
-		{
-			// Then update the device list
-			UpdateDeviceList();
-			
-			// save param /number
-			g_stCP2112Conf.ucDeviceNumber = deviceNum;
-		}
-	}
-}
-
-
-void CUniversalReaderDlg::OnSelchangeComboDeviceList()
+void CUniversalReaderDlg::TryConnect(void)
 {
 	BYTE bConnectState = Connect();
 
@@ -364,12 +327,12 @@ void CUniversalReaderDlg::OnSelchangeComboDeviceList()
 	{
 		// set device config
 		UpdateData(TRUE);
-			
+
 		// get board types
 		BYTE ucDeviceType = m_iRadio_BoardType;
 
 		// save param /type
-		g_stCP2112Conf.ucBoardType = ucDeviceType;			
+		g_stCP2112Conf.ucBoardType = ucDeviceType;
 
 		// define other params
 		switch (ucDeviceType)
@@ -419,41 +382,82 @@ void CUniversalReaderDlg::OnSelchangeComboDeviceList()
 
 		// set device config
 		DeviceCP2112_SetConfig();
+	}
+}
+
+
+void CUniversalReaderDlg::OnDropdownComboDeviceList()
+{
+	// Automatically update the device list when the
+	// list is opened/dropped down
+	UpdateDeviceList();
+
+}
+
+
+void CUniversalReaderDlg::OnCloseupComboDeviceList()
+{
+	// TODO: 
+	CString		serial;
+	DWORD		deviceNum;
+
+	if (GetSelectedDevice(serial))
+	{
+		// If the selected device has been removed
+		if (!FindDevice(serial, deviceNum))
+		{
+			// Then update the device list
+			UpdateDeviceList();
+			
+			// save param /number
+			g_stCP2112Conf.ucDeviceNumber = deviceNum;
+		}
+	}
+}
+
+
+void CUniversalReaderDlg::OnSelchangeComboDeviceList()
+{
+	TryConnect();
+
+	// check device open
+	if (DeviceCP2112_GetUpdateOpenState())
+	{
+		// [OPEN]
 
 		// open main dialog
+		CReadTesterDlg dlgReadTesterDlg;
+		dlgReadTesterDlg.DoModal();
 
+	}
 
-			
-		//CGPIOConfig GPIOConfigDlg(&this->m_hidSmbus);
-		//GPIOConfigDlg.DoModal();
-	}		
 }
 
 
 void CUniversalReaderDlg::OnBnClickedCancel()
 {
-	// TODO: добавьте свой код обработчика уведомлений
+	
 	CDialogEx::OnCancel();
 }
 
 
 void CUniversalReaderDlg::OnBnClickedOk()
 {
-	// TODO: добавьте свой код обработчика уведомлений
+	
 	CDialogEx::OnOK();
 }
 
 
 void CAboutDlg::OnBnClickedOk()
 {
-	// TODO: добавьте свой код обработчика уведомлений
+	
 	CDialogEx::OnOK();
 }
 
 
 void CUniversalReaderDlg::OnBnClickedCheckConnect()
 {
-	// TODO: Add your control notification handler code here
+	
 }
 
 

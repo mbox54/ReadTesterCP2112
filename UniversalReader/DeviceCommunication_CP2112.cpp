@@ -10,6 +10,12 @@
 
 
 ////////////////////////////////////////////////////////////
+// Library Dependencies
+////////////////////////////////////////////////////////////
+#pragma comment(lib, "SLABHIDtoSMBus.lib")
+
+
+////////////////////////////////////////////////////////////
 // members
 ////////////////////////////////////////////////////////////
 
@@ -50,14 +56,33 @@ BYTE DeviceCP2112_Open(WORD usIndex)
 
 void DeviceCP2112_OpenStatusUpdate()
 {	
-	HID_SMBUS_STATUS status = HidSmbus_IsOpened(g_hidSmbus, &g_stCP2112ErrStatus.bLastOpenStatus);
+	BOOL bOpenState = 0;
+	HID_SMBUS_STATUS status = HidSmbus_IsOpened(g_hidSmbus, &bOpenState);
 
 	// reset state if device inaccesible
 	if (status != HID_SMBUS_SUCCESS)
 	{
 		g_stCP2112ErrStatus.bLastOpenStatus = 0;
 	}
+	else
+	{
+		// try Read CP2112 device addr 0x02
+		BYTE ucResult = ERROR_UNKNOWN_ERROR;
+
+		// issue a read request
+		ucResult = DeviceCP2112_ReadIIC_Request(0x02, 1);
+		if (ucResult == ERROR_COMPLETE_WITHOUT_ERRORS)
+		{
+			// OK
+			g_stCP2112ErrStatus.bLastOpenStatus = 1;
+		}	
+		else
+		{
+			g_stCP2112ErrStatus.bLastOpenStatus = 0;
+		}
+	}
 }
+
 
 BOOL DeviceCP2112_GetUpdateOpenState()
 {
@@ -66,6 +91,7 @@ BOOL DeviceCP2112_GetUpdateOpenState()
 
 	return g_stCP2112ErrStatus.bLastOpenStatus;
 }
+
 
 BOOL DeviceCP2112_GetLastOpenState()
 {
@@ -298,9 +324,9 @@ BYTE DeviceCP2112_ReadIIC_ForceResponceCheck(WORD usCount)
 
 BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS(BYTE ucSlaveAddr)
 {
+	BYTE ucResult = DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(ucSlaveAddr, 1);
 
-
-	return 0;
+	return ucResult;
 }
 
 
@@ -316,7 +342,7 @@ BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, WORD usCo
 	}
 
 	// issue a read request
-	DeviceCP2112_ReadIIC_Request(ucSlaveAddr, usCount);
+	ucErrorState = DeviceCP2112_ReadIIC_Request(ucSlaveAddr, usCount);
 	if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
 	{
 		return ERROR_DEVICE_FAIL_WHILE_PERFORMING_REQUEST;
