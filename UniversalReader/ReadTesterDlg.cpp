@@ -13,11 +13,15 @@
 // static
 ////////////////////////////////////////////////////////////
 
-BYTE g_bDialogInited = 0;
-struct st_InterfaceParams g_stInterfaceParams;
-CWnd* m_pTesterDlgWnd = NULL;
 
+struct st_InterfaceParams m_stInterfaceParams;
+struct st_IICOpParams m_stIICOpParams;
+static struct st_ExperimentParams m_stExperimentParams;
+
+BYTE m_bDialogInited = 0;
+CWnd* m_pTesterDlgWnd = NULL;
 std::mutex m_mutexCP2112Device;
+
 
 
 ////////////////////////////////////////////////////////////
@@ -34,6 +38,8 @@ CReadTesterDlg::CReadTesterDlg(CWnd* pParent /*=nullptr*/)
 	, m_strEdit_Nbyte(_T(""))
 	, m_strEdit_Packdelay(_T(""))
 	, m_strEdit_Expcount(_T(""))
+	, m_bCheck_AutoConnect(FALSE)
+	, m_iRadio_Optype(0)
 {
 
 }
@@ -53,6 +59,14 @@ void CReadTesterDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_Packdelay, m_strEdit_Packdelay);
 	DDX_Control(pDX, IDC_EDIT_errorlog, m_ctrlEdit_errorlog);
 	DDX_Text(pDX, IDC_EDIT_Expcount, m_strEdit_Expcount);
+	DDX_Check(pDX, IDC_CHECK_AUTO_RECONNECT, m_bCheck_AutoConnect);
+	DDX_Radio(pDX, IDC_RADIO1, m_iRadio_Optype);
+	DDX_Control(pDX, IDC_EDIT_ByteAddr, m_ctrlEdit_ByteAddr);
+	DDX_Control(pDX, IDC_EDIT_Count, m_ctrlEdit_Count);
+	DDX_Control(pDX, IDC_EDIT_Expcount, m_ctrlEdit_Expcount);
+	DDX_Control(pDX, IDC_EDIT_Nbyte, m_ctrlEdit_Nbyte);
+	DDX_Control(pDX, IDC_EDIT_Packdelay, m_ctrlEdit_Packdelay);
+	DDX_Control(pDX, IDC_EDIT_SlaveAddr, m_ctrlEdit_SlaveAddr);
 }
 
 
@@ -128,6 +142,9 @@ BEGIN_MESSAGE_MAP(CReadTesterDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_LOAD_CONF, &CReadTesterDlg::OnBnClickedButtonLoadConf)
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
+	ON_BN_CLICKED(IDC_BUTTON_BOARD_RESET, &CReadTesterDlg::OnBnClickedButtonBoardReset)
+	ON_BN_CLICKED(IDC_BUTTON_BOARD_REOPEN, &CReadTesterDlg::OnBnClickedButtonBoardReopen)
+	ON_BN_CLICKED(IDC_BUTTON_BOARD_CLOSE, &CReadTesterDlg::OnBnClickedButtonBoardClose)
 END_MESSAGE_MAP()
 
 
@@ -141,26 +158,41 @@ BOOL CReadTesterDlg::OnInitDialog()
 
 	// globals
 	// dialog inited in mem
-	g_bDialogInited = 1;
+	m_bDialogInited = 1;
 
 	// store HWnd
 	m_pTesterDlgWnd = this;
 
 	// defaults
-	g_stInterfaceParams.bEnableFile = 0;
-	g_stInterfaceParams.bEnableLog = 0;
+	m_stInterfaceParams.bEnableFile = 0;
+	m_stInterfaceParams.bEnableLog = 0;
 
 	// control defaults
 	m_strEdit_SlaveAddr = (CString)"A0";
 	m_strEdit_ByteAddr = (CString)"00";
 	m_strEdit_Count = (CString)"1";
 	m_strEdit_Nbyte = (CString)"128";
-	m_strEdit_Expcount = (CString)"1";
+	m_strEdit_Packdelay = (CString)"0";
+	m_strEdit_Expcount = (CString)"1000";
+
+	m_ctrlEdit_SlaveAddr.SetLimitText(2);
+	m_ctrlEdit_ByteAddr.SetLimitText(2);
+	m_ctrlEdit_Count.SetLimitText(3);
+	m_ctrlEdit_Nbyte.SetLimitText(3);
+	m_ctrlEdit_Packdelay.SetLimitText(4);
+	m_ctrlEdit_Expcount.SetLimitText(7);
+
 
 	CWnd* pStaticConnection = this->GetDlgItem(IDC_STATIC_CONNECTION);
 	CFont* m_Font1 = new CFont;
 	m_Font1->CreatePointFont(100, _T("Lucida console"));
-	pStaticConnection->SetFont(m_Font1);
+	CFont* m_Font2 = new CFont;
+	m_Font2->CreatePointFont(160, _T("Lucida console"));
+
+	pStaticConnection->SetFont(m_Font2);
+
+	m_bCheck_AutoConnect = 1;
+	m_iRadio_Optype = 0;
 
 	CString str;
 	if (DeviceCP2112_GetLastOpenState())
@@ -184,7 +216,7 @@ BOOL CReadTesterDlg::OnInitDialog()
 	StartTimer();
 
 	// !debug
-	g_stInterfaceParams.bEnableLog = 1;
+	m_stInterfaceParams.bEnableLog = 1;
 
 
 
@@ -202,12 +234,11 @@ void CReadTesterDlg::ExperimentStart()
 
 	// TODO:
 	// prepare all other modes
-	stIICOpParams.ucMode = ReadIIC_CURRENT_ADDRESS_SEQUENTIAL;
-
 	stIICOpParams.ucSlaveAddr = GetInt_HexFormatted(m_strEdit_SlaveAddr);
 	stIICOpParams.ucByteAddr = GetInt_HexFormatted(m_strEdit_ByteAddr);
 	stIICOpParams.usCount = GetInt_DecFormatted(m_strEdit_Count);
 	stIICOpParams.usPacketDelay = GetInt_DecFormatted(m_strEdit_Packdelay);
+	stIICOpParams.ucMode = m_iRadio_Optype;
 
 	// output experiment parameters
 	Trace(_T("Experiment ## \n"));
@@ -217,10 +248,33 @@ void CReadTesterDlg::ExperimentStart()
 	Trace(_T("ByteAddr = %s\n"), m_strEdit_ByteAddr);
 	Trace(_T("usCount = %s\n"), m_strEdit_Count);
 	Trace(_T("PacketDelay = %s\n"), m_strEdit_Packdelay);
-	Trace(_T("\n"));
+	Trace(_T("***\n\n"));	
 
-	// create new thread with CP2112_Device OP
-	std::thread Thread_ReadCP2112(ReadDevice, stIICOpParams);
+	switch (stIICOpParams.ucMode)
+	{
+	case ReadIIC_CURRENT_ADDRESS:
+		Trace(L"case: Read_CURRENT_ADDRESS\n");
+		break;
+
+	case ReadIIC_CURRENT_ADDRESS_SEQUENTIAL:
+		Trace(L"case: Read_CURRENT_ADDRESS_SEQUENTIAL\n");		
+
+		break;
+
+
+	default:
+		// err case
+		break;
+	}
+
+	Trace(_T("***\n\n"));
+
+	// create new thread with Experiment
+	m_stIICOpParams = stIICOpParams;
+	m_stExperimentParams.usNumber = 0;
+	m_stExperimentParams.usCount = GetInt_DecFormatted(m_strEdit_Expcount);
+
+	std::thread Thread_ReadCP2112(ExperimentRun);
 	Thread_ReadCP2112.detach();
 }
 
@@ -241,7 +295,7 @@ void CReadTesterDlg::ExperimentStop()
 
 void CReadTesterDlg::StartTimer()
 {
-	m_nTimerMon = SetTimer(TIMER_ID_MON, 1000, NULL);
+	m_nTimerMon = SetTimer(TIMER_ID_MON, 250, NULL);
 }
 
 
@@ -266,6 +320,7 @@ void CReadTesterDlg::OnBnClickedOk()
 
 void CReadTesterDlg::OnBnClickedButtonGo()
 {
+	ClearLog();
 	ExperimentStart();
 }
 
@@ -278,7 +333,8 @@ void CReadTesterDlg::OnBnClickedButtonPause()
 
 void CReadTesterDlg::OnBnClickedButtonStop()
 {
-	// TODO: Add your control notification handler code here
+	// set stop FLAG
+	m_stExperimentParams.bStopFLAG = 1;
 }
 
 
@@ -484,6 +540,29 @@ void CheckOutputWarnings(void)
 }
 
 
+void CheckOutputWarnings_ExistedOnly(void)
+{
+	// check
+	if (g_stCP2112WarnStatus.bWarnFlag)
+	{
+		if (g_stCP2112WarnStatus.usBusyCounter > 0)
+		{
+			OutputLog(L"* device was busy when proceed reading some time: %d ms\n", g_stCP2112WarnStatus.usBusyCounter);
+		}
+
+		if (g_stCP2112WarnStatus.usBusyNakedCases > 0)
+		{
+			OutputLog(L"* device return NACK when reading: %d\n", g_stCP2112WarnStatus.usBusyNakedCases);
+		}
+
+		if (g_stCP2112WarnStatus.usRetryCounter > 0)
+		{
+			OutputLog(L"* cp2112 use repeated start to retry Read, because first time read was inaccesible: %d\n", g_stCP2112WarnStatus.usRetryCounter);
+		}
+	}
+}
+
+
 void ReadDevice(st_IICOpParams stIICOpParams)
 {
 	// check resource availability
@@ -494,7 +573,7 @@ void ReadDevice(st_IICOpParams stIICOpParams)
 	}	
 
 	// log OP
-	if (g_stInterfaceParams.bEnableLog)
+	if (m_stInterfaceParams.bEnableLog)
 	{
 		OutputLog(L"status: started. \n");
 	}
@@ -510,7 +589,7 @@ void ReadDevice(st_IICOpParams stIICOpParams)
 	case ReadIIC_CURRENT_ADDRESS_SEQUENTIAL:
 
 		// log OP
-		if (g_stInterfaceParams.bEnableLog)
+		if (m_stInterfaceParams.bEnableLog)
 		{
 			OutputLog(L"case: Read_CURRENT_ADDRESS_SEQUENTIAL\n\n");
 		}
@@ -531,7 +610,7 @@ void ReadDevice(st_IICOpParams stIICOpParams)
 		// [DEVICE CLOSED]
 
 		// log OP
-		if (g_stInterfaceParams.bEnableLog)
+		if (m_stInterfaceParams.bEnableLog)
 		{
 			OutputLog(L"status: canceled. Device closed. Check CP2112 device.\n");
 		}
@@ -552,21 +631,21 @@ void ReadDevice(st_IICOpParams stIICOpParams)
 	{
 		// [DEVICE FAIL: STAGE REQUEST]
 
-		OutputLog(L"status: failed. \n * Device has been inaccessible while PERFORMING_REQUEST *\n");
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while PERFORMING_REQUEST *\n");
 
 	}
 	else if (ucResult == ERROR_DEVICE_FAIL_WHILE_PERFORMING_GET_DATA)
 	{
 		// [DEVICE FAIL: STAGE GET DATA]
 
-		OutputLog(L"status: failed. \n * Device has been inaccessible while GET_DATA *\n");
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while GET_DATA *\n");
 
 	}
 	else if (ucResult == ERROR_DEVICE_FAIL_WHILE_PERFORMING_FORCE)
 	{
 		// [DEVICE FAIL: STAGE FORCE READ REQUEST]
 
-		OutputLog(L"status: failed. \n * Device has been inaccessible while FORCE_READ_REQUEST *\n");
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while FORCE_READ_REQUEST *\n");
 
 	}
 	// FORCE READ REQUEST SPECIFIC GROUP
@@ -626,6 +705,377 @@ void ReadDevice(st_IICOpParams stIICOpParams)
 }
 
 
+BYTE ReadDevice_Experiment()
+{
+	// wait for resource availability
+	WORD usMutexLockTimeout = 0;
+
+	while (!m_mutexCP2112Device.try_lock())
+	{
+		if (usMutexLockTimeout < 100)
+		{
+			std::chrono::milliseconds(1);
+			usMutexLockTimeout++;
+			OutputLog(L".");
+		}
+		else
+		{			
+			return ERROR_MUTEX_TIMEOUT;
+		}		
+	}
+
+	BYTE ucResult = ERROR_UNKNOWN_ERROR;
+	switch (m_stIICOpParams.ucMode)
+	{
+	case ReadIIC_CURRENT_ADDRESS:
+
+		ucResult = DeviceCP2112_ReadIIC_CURRENT_ADDRESS(m_stIICOpParams.ucSlaveAddr);		
+
+		break;
+
+	case ReadIIC_CURRENT_ADDRESS_SEQUENTIAL:
+
+		// log OP
+		if (m_stInterfaceParams.bEnableLog)
+		{
+			//OutputLog(L"case: Read_CURRENT_ADDRESS_SEQUENTIAL\n\n");
+		}
+
+		ucResult = DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(m_stIICOpParams.ucSlaveAddr, m_stIICOpParams.usCount);
+
+		break;
+
+
+	default:
+		// err case
+		break;
+	}
+
+	// check statuses
+	if (ucResult == OP_STATUS_DEVICE_CLOSED)
+	{
+		// [DEVICE CLOSED]
+
+		// log OP
+		if (m_stInterfaceParams.bEnableLog)
+		{
+			OutputLog(L"status: canceled. Device closed. Check CP2112 device.\n");
+		}
+	}
+	else if (ucResult == ERROR_COMPLETE_WITHOUT_ERRORS)
+	{
+		// [COMPLETE SUCCESSFULL]
+
+		//OutputLog(L"status: success.\n");
+		//OutputLog(L"details:\n");
+
+		//DecodeErrorStatus();
+		CheckOutputWarnings();
+		CheckOutputWarnings_ExistedOnly();
+	}
+	// DEVICE_FAIL_WHILE_PERFORMING GROUP
+	else if (ucResult == ERROR_DEVICE_FAIL_WHILE_PERFORMING_REQUEST)
+	{
+		// [DEVICE FAIL: STAGE REQUEST]
+
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while PERFORMING_REQUEST *\n");
+
+	}
+	else if (ucResult == ERROR_DEVICE_FAIL_WHILE_PERFORMING_GET_DATA)
+	{
+		// [DEVICE FAIL: STAGE GET DATA]
+
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while GET_DATA *\n");
+
+	}
+	else if (ucResult == ERROR_DEVICE_FAIL_WHILE_PERFORMING_FORCE)
+	{
+		// [DEVICE FAIL: STAGE FORCE READ REQUEST]
+
+		OutputLog(L"status: failed. \n * i2c-Device had been inaccessible while FORCE_READ_REQUEST *\n");
+
+	}
+	// FORCE READ REQUEST SPECIFIC GROUP
+	else if (ucResult == ERROR_COMPLETE_WITH_ERRORS)
+	{
+		// [SEE STATUS1]
+
+		OutputLog(L"status: failed. \n *** Complete with errors. ***\n");
+		OutputLog(L"details:\n");
+
+		DecodeErrorStatus();
+		CheckOutputWarnings();
+
+	}
+	else if (ucResult == ERROR_PROCESS_TIMEOUT)
+	{
+		// [BUSY READING TIMEOUT]
+
+		OutputLog(L"status: failed. Operation ceased by timeout.\n");
+		OutputLog(L"details:\n");
+
+		DecodeErrorStatus();
+		CheckOutputWarnings();
+
+	}
+	else if (ucResult == ERROR_ADDRESS_NAKED_THRESHOLD)
+	{
+		// [NACKED COUNT THRESHOLD]
+
+		OutputLog(L"status: failed. Operation ceased by NACK threshold.\n");
+		OutputLog(L"details:\n");
+
+		DecodeErrorStatus();
+		CheckOutputWarnings();
+	}
+	// ERROR / UNKNOWN USAGE CASE
+	else if (ucResult == ERROR_UNKNOWN_ERROR)
+	{
+		// [UNKNOWN REASON]
+
+		OutputLog(L"status: failed. Unknown behavior, invalid usage.\n");
+		OutputLog(L"details:\n");
+
+		DecodeErrorStatus();
+		CheckOutputWarnings();
+	}
+
+	m_stExperimentParams.ucOpLastStatus = ucResult;
+	
+	m_mutexCP2112Device.unlock();
+
+	return ucResult;
+}
+
+
+void ResetDevice(void)
+{
+	// check resource availability
+	if (!m_mutexCP2112Device.try_lock())
+	{
+		OutputLog(L"\nCP2112 is used now, retry later.\n");
+		return;
+	}
+
+	// PROC
+	OutputLog(L"Try to reset CP2112 device");
+
+	BYTE ucResult = DeviceCP2112_Reset();
+	if (ucResult != ERROR_COMPLETE_WITHOUT_ERRORS)
+	{
+		OutputLog(L"\nReset complete with errors.\n");
+	}
+	else
+	{
+		OutputLog(L"\nReset complete successfully.\n");
+	}
+
+	m_mutexCP2112Device.unlock();	
+}
+
+
+void ReopenDevice(void)
+{
+	// check resource availability
+	if (!m_mutexCP2112Device.try_lock())
+	{
+		OutputLog(L"\nCP2112 is used now, retry later.\n");
+		return;
+	}
+
+	// PROC
+	OutputLog(L"Try to reopen CP2112 device");
+
+	BYTE ucResult = DeviceCP2112_Reopen();
+	if (ucResult != ERROR_COMPLETE_WITHOUT_ERRORS)
+	{
+		OutputLog(L"\nReopen complete with errors.\n");
+	}
+	else
+	{
+		OutputLog(L"\nReopen complete successfully.\n");
+	}
+
+	m_mutexCP2112Device.unlock();	
+}
+
+
+void CloseDevice(void)
+{
+	// check resource availability
+	if (!m_mutexCP2112Device.try_lock())
+	{
+		OutputLog(L"\nCP2112 is used now, retry later.\n");
+		return;
+	}
+
+	// PROC
+	OutputLog(L"Try to close CP2112 device");
+
+	BYTE ucResult = DeviceCP2112_Close();
+	if (ucResult != ERROR_COMPLETE_WITHOUT_ERRORS)
+	{
+		OutputLog(L"\nClose complete with errors.\n");
+	}
+	else
+	{
+		OutputLog(L"\nClose complete successfully.\n");
+	}
+
+	m_mutexCP2112Device.unlock();	
+}
+
+
+void ReopenDevice_NoLogOutput(void)
+{
+	// check resource availability
+	if (!m_mutexCP2112Device.try_lock())
+	{
+		return;
+	}
+
+	// PROC
+	BYTE ucResult = DeviceCP2112_Reopen();
+
+	m_mutexCP2112Device.unlock();
+}
+
+
+void UpdateConnectionState(void)
+{
+	if (m_mutexCP2112Device.try_lock())
+	{
+		// [FREE]
+
+		// PROC
+		BYTE ucPreviousState = DeviceCP2112_GetLastOpenState();
+
+		if (DeviceCP2112_GetUpdateOpenState() != ucPreviousState)
+		{
+			// [NEED TO UPDATE]
+
+			CString str;
+			if (DeviceCP2112_GetLastOpenState())
+			{
+				// [CONNECT]
+
+				str.Append(L"CONNECTED");
+			}
+			else
+			{
+				// [DISCONNECT]
+
+				str.Append(L"DISCONNECTED");
+			}
+
+			CWnd* pStatic = m_pTesterDlgWnd->GetDlgItem(IDC_STATIC_CONNECTION);
+			pStatic->SetWindowTextW(str);
+		}
+
+		m_mutexCP2112Device.unlock();
+	}
+	else
+	{
+		// [BUSY]
+
+		// skip
+		// show wait status
+		OutputLog(L".");
+	}
+}
+
+// thread-proc
+void ExperimentRun(void)
+{
+	wchar_t chBuf64[64];
+
+	// init state without errs
+	m_stExperimentParams.ucOpLastStatus = ERROR_COMPLETE_WITHOUT_ERRORS;
+
+	CWnd* pStatic_expmax = m_pTesterDlgWnd->GetDlgItem(IDC_STATIC_expmax);
+	wsprintf(chBuf64, L"/ %07d", m_stExperimentParams.usCount);
+	pStatic_expmax->SetWindowTextW((LPCTSTR)chBuf64);
+
+
+	// output controls
+	CWnd* pStatic_expnumber = m_pTesterDlgWnd->GetDlgItem(IDC_STATIC_expnumber);
+	CWnd* pStatic_timeremain = m_pTesterDlgWnd->GetDlgItem(IDC_STATIC_timeremain);
+	CWnd* pProgressbarWnd = m_pTesterDlgWnd->GetDlgItem(IDC_PROGRESS_test);
+	CProgressCtrl* pProgressbarCtrl = static_cast<CProgressCtrl*> (pProgressbarWnd);
+
+	OutputLog(L"Run. \n");
+	pProgressbarCtrl->SetPos(0);
+
+	for (WORD k = 0; k < m_stExperimentParams.usCount; k++)
+	{
+		m_stExperimentParams.usNumber = k + 1;
+
+		// output experiment number
+		
+		wsprintf(chBuf64, L"%07d", m_stExperimentParams.usNumber);
+		pStatic_expnumber->SetWindowTextW((LPCTSTR)chBuf64);
+
+		// proc operation
+		BYTE ucResult = ReadDevice_Experiment();
+		
+		// check result
+		if (ucResult == ERROR_COMPLETE_WITHOUT_ERRORS)
+		{
+			// success
+		}
+		else if (ucResult == ERROR_MUTEX_TIMEOUT)
+		{
+			// skip with warning
+			OutputLog(L"\nCP2112 device unavailable too long, aborted!\n");
+		}
+		else
+		{
+			// cease experiment
+			OutputLog(L"Error break! \n");
+			break;
+		}
+		
+		// global stop FLAG
+		if (m_stExperimentParams.bStopFLAG)
+		{
+			// cease experiment
+			OutputLog(L"User stop. \n");
+			break;
+		}
+
+		// update progress
+		pProgressbarCtrl->SetPos(m_stExperimentParams.usNumber * 100 / m_stExperimentParams.usCount);
+	}
+	OutputLog(L"Stop. \n");
+
+	// Experiment finish
+	// form report
+	if (m_stExperimentParams.bStopFLAG)
+	{
+		// user stop
+		OutputLog(L"\nreport: user cease experiment\n");
+		OutputLog(L"\nlast operation number: %d \n", m_stExperimentParams.usNumber);
+
+		// reset FLAG
+		m_stExperimentParams.bStopFLAG = 0;
+	}
+
+	if (m_stExperimentParams.ucOpLastStatus != ERROR_COMPLETE_WITHOUT_ERRORS)
+	{
+		// caceled by ocurred error
+		OutputLog(L"\nreport: error occurred, experiment canceled\n");
+		OutputLog(L"\nlast operation number: %d \n", m_stExperimentParams.usNumber);
+		OutputLog(L"see log for error details.\n\n");
+	}
+	else
+	{
+		OutputLog(L"\nreport: Excelent! No errors occurred.\n");
+	}
+
+	pProgressbarCtrl->SetPos(100);
+}
+
+
 void CReadTesterDlg::OnBnClickedButtonClearLog()
 {
 	ClearLog();
@@ -652,29 +1102,26 @@ void CReadTesterDlg::OnBnClickedButtonLoadConf()
 
 void CReadTesterDlg::OnTimer(UINT_PTR nIDEvent)
 {
-	BYTE ucPreviousState = DeviceCP2112_GetLastOpenState();
+	// PROC
+	std::thread thrDeviceOP(UpdateConnectionState);
+	thrDeviceOP.detach();
 
-	if (DeviceCP2112_GetUpdateOpenState() != ucPreviousState)
+	// auto connect option
+	UpdateData(TRUE);
+	if (m_bCheck_AutoConnect)
 	{
-		// [NEED TO UPDATE]
+		// [AUTO CONNECTION]
 
-		CString str;
-		if (DeviceCP2112_GetLastOpenState())
+		// check connection state
+		if (!DeviceCP2112_GetLastOpenState())
 		{
-			// [CONNECT]
+			// [DISCONNECTED]
 
-			str.Append(L"CONNECTED");
+			// try to connect
+			std::thread thrDeviceOP(ReopenDevice_NoLogOutput);
+			thrDeviceOP.detach();
 		}
-		else
-		{
-			// [DISCONNECT]
-
-			str.Append(L"DISCONNECTED");
-		}
-
-		CWnd* pStatic = GetDlgItem(IDC_STATIC_CONNECTION);
-		pStatic->SetWindowTextW(str);
-	}
+	}	
 
 	CDialog::OnTimer(nIDEvent);
 }
@@ -709,4 +1156,28 @@ HBRUSH CReadTesterDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO:  Return a different brush if the default is not desired
 	return hbr;
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonBoardReset()
+{
+	// try to reset
+	std::thread thrDeviceOP(ResetDevice);
+	thrDeviceOP.detach();
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonBoardReopen()
+{
+	// try to reopen
+	std::thread thrDeviceOP(ReopenDevice);
+	thrDeviceOP.detach();
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonBoardClose()
+{
+	// try to close
+	std::thread thrDeviceOP(CloseDevice);
+	thrDeviceOP.detach();
 }

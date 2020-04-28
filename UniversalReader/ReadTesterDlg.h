@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 
 ////////////////////////////////////////////////////////////
@@ -34,6 +35,7 @@
 #define WriteIIC_RANDOM_ADDRESS						4
 #define WriteIIC_RANDOM_ADDRESS_SEQUENTIAL			5
 
+#define ERROR_MUTEX_TIMEOUT							0x30
 
 ////////////////////////////////////////////////////////////
 // typedefs
@@ -46,6 +48,15 @@ struct st_IICOpParams
 	BYTE ucByteAddr;
 	BYTE usCount;
 	WORD usPacketDelay;
+};
+
+
+struct st_ExperimentParams
+{
+	DWORD usCount;
+	DWORD usNumber;
+	BYTE ucOpLastStatus;
+	BYTE bStopFLAG;
 };
 
 
@@ -64,8 +75,18 @@ void OutputLog(LPCTSTR szFmt, ...);
 
 void DecodeErrorStatus(void);
 void CheckOutputWarnings(void);
+void CheckOutputWarnings_ExistedOnly(void);
 
+BYTE ReadDevice_Experiment();
+
+// CP2112 Device (with mutex protection)
 void ReadDevice(struct st_IICOpParams stIICOpParams);
+void ResetDevice(void);
+void ReopenDevice(void);
+void CloseDevice(void);
+void ReopenDevice_NoLogOutput(void);
+void UpdateConnectionState(void);
+void ExperimentRun(void);
 
 
 ////////////////////////////////////////////////////////////
@@ -139,4 +160,15 @@ public:
 
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnBnClickedButtonBoardReset();
+	afx_msg void OnBnClickedButtonBoardReopen();
+	afx_msg void OnBnClickedButtonBoardClose();
+	BOOL m_bCheck_AutoConnect;
+	int m_iRadio_Optype;
+	CEdit m_ctrlEdit_ByteAddr;
+	CEdit m_ctrlEdit_Count;
+	CEdit m_ctrlEdit_Expcount;
+	CEdit m_ctrlEdit_Nbyte;
+	CEdit m_ctrlEdit_Packdelay;
+	CEdit m_ctrlEdit_SlaveAddr;
 };

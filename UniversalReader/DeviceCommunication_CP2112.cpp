@@ -42,15 +42,14 @@ BYTE v_BufferRead[HID_SMBUS_MAX_READ_REQUEST_SIZE];
 BYTE DeviceCP2112_Open(WORD usIndex)
 {
 	HID_SMBUS_STATUS status = HidSmbus_Open(&g_hidSmbus, usIndex, VID, PID);
-
-	if (status == HID_SMBUS_SUCCESS)
+	if (status != HID_SMBUS_SUCCESS)
 	{
-		// [VALID]
+		// [FAIL]
 
-		return 0;
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
 	}
 	
-	return 1;
+	return ERROR_COMPLETE_WITHOUT_ERRORS;
 }
 
 
@@ -99,47 +98,116 @@ BOOL DeviceCP2112_GetLastOpenState()
 }
 
 
-void DeviceCP2112_SetConfig(void)
+BYTE DeviceCP2112_SetConfig(void)
 {
 	// set GPIO direction and mode bitmasks
 	HID_SMBUS_STATUS status = HidSmbus_SetGpioConfig(g_hidSmbus, g_stCP2112Conf.direction, g_stCP2112Conf.mode, g_stCP2112Conf.function, 0);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
 
 	// init Latch
 	HidSmbus_WriteLatch(g_hidSmbus, 0x00, 0xFF);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	return ERROR_COMPLETE_WITHOUT_ERRORS;
+}
+
+BYTE DeviceCP2112_Close(void)
+{
+	// reset CP2112
+	HID_SMBUS_STATUS status = HidSmbus_Close(g_hidSmbus);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	return ERROR_COMPLETE_WITHOUT_ERRORS;
 }
 
 
-void DeviceCP2112_Reset(void)
+BYTE DeviceCP2112_Reset(void)
 {
 	// reset CP2112
-	BYTE retVal = HidSmbus_Reset(g_hidSmbus);
+	HID_SMBUS_STATUS status = HidSmbus_Reset(g_hidSmbus);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
 
 	// NOTE: To reset ~1300ms is needed.
 	Sleep(1300);
 
 	// open CP2112 last connection
-	DeviceCP2112_Open(g_stCP2112Conf.ucDeviceNumber);
-	Sleep(20);
+	status = DeviceCP2112_Open(g_stCP2112Conf.ucDeviceNumber);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	Sleep(50);
 
 	// set last config
-	DeviceCP2112_SetConfig();
+	status = DeviceCP2112_SetConfig();
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	return ERROR_COMPLETE_WITHOUT_ERRORS;
+}
+
+// open CP2112 last connection
+BYTE DeviceCP2112_Reopen(void)
+{	
+	BYTE status = DeviceCP2112_Open(g_stCP2112Conf.ucDeviceNumber);
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	Sleep(50);
+
+	// set last config
+	status = DeviceCP2112_SetConfig();
+	if (status != HID_SMBUS_SUCCESS)
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
+
+	return ERROR_COMPLETE_WITHOUT_ERRORS;
 }
 
 
-BYTE DeviceCP2112_ReadLatch(void)
+BYTE DeviceCP2112_ReadLatch(BYTE * ucLatchValue)
 {
 	// > Get Latch Values from CP2112
 	BYTE latchValue = 0;
 	HID_SMBUS_STATUS status = HidSmbus_ReadLatch(g_hidSmbus, &latchValue);
-
 	if (status == HID_SMBUS_SUCCESS)
 	{
 		// [VALID]
 
-		return latchValue;
+		*ucLatchValue = latchValue;
+		return ERROR_COMPLETE_WITHOUT_ERRORS;
 	}
-
-	return 0;
+	else
+	{
+		// device connection error while performing
+		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+	}
 }
 
 // simple request

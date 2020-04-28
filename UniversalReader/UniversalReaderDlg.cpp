@@ -289,6 +289,9 @@ BOOL CUniversalReaderDlg::Connect()
 			BYTE ucResult = DeviceCP2112_Open(deviceNum);
 			if (ucResult == HID_SMBUS_SUCCESS)
 			{
+				// save param /number
+				g_stCP2112Conf.ucDeviceNumber = deviceNum;
+
 				connected = TRUE;
 			}
 			else
@@ -408,9 +411,6 @@ void CUniversalReaderDlg::OnCloseupComboDeviceList()
 		{
 			// Then update the device list
 			UpdateDeviceList();
-			
-			// save param /number
-			g_stCP2112Conf.ucDeviceNumber = deviceNum;
 		}
 	}
 }

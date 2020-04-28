@@ -94,15 +94,17 @@ extern struct st_CP2112WarnStatus g_stCP2112WarnStatus;
 WORD DeviceCP2112_GetDeviceCount(void);
 BYTE DeviceCP2112_GetIDString(WORD usIndex, char* strIDString);
 BYTE DeviceCP2112_Open(WORD usIndex);
-void DeviceCP2112_SetConfig(void);
-BYTE DeviceCP2112_ReadLatch(void);
+BYTE DeviceCP2112_SetConfig(void);
+BYTE DeviceCP2112_Close(void);
+BYTE DeviceCP2112_ReadLatch(BYTE* ucLatchValue);
 BYTE DeviceCP2112_ReadIIC_Request(BYTE ucSlaveAddr, WORD usCount);
 BYTE DeviceCP2112_ReadIIC_RequestAddr(BYTE ucSlaveAddr, WORD ucByteAddr, WORD usCount);
 BYTE DeviceCP2112_ReadIIC_GetData(BYTE* usReceivedCountInfo, BYTE v_buffer[HID_SMBUS_MAX_READ_RESPONSE_SIZE]);
 
 // *** complex proc perform ***
 // service
-void DeviceCP2112_Reset(void);
+BYTE DeviceCP2112_Reset(void);
+BYTE DeviceCP2112_Reopen(void);
 BYTE DeviceCP2112_ReadIIC_ForceResponceCheck(WORD usCount);
 
 // read
