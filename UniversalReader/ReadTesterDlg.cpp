@@ -145,6 +145,7 @@ BEGIN_MESSAGE_MAP(CReadTesterDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_BOARD_RESET, &CReadTesterDlg::OnBnClickedButtonBoardReset)
 	ON_BN_CLICKED(IDC_BUTTON_BOARD_REOPEN, &CReadTesterDlg::OnBnClickedButtonBoardReopen)
 	ON_BN_CLICKED(IDC_BUTTON_BOARD_CLOSE, &CReadTesterDlg::OnBnClickedButtonBoardClose)
+	ON_BN_CLICKED(IDC_BUTTON_READ_INPUT, &CReadTesterDlg::OnBnClickedButtonReadInput)
 END_MESSAGE_MAP()
 
 
@@ -1180,4 +1181,13 @@ void CReadTesterDlg::OnBnClickedButtonBoardClose()
 	// try to close
 	std::thread thrDeviceOP(CloseDevice);
 	thrDeviceOP.detach();
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonReadInput()
+{
+	// open config dlg
+	CReadSetDlg dlgReadSet;
+	dlgReadSet.DoModal();
+
 }

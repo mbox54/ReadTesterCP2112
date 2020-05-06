@@ -10,6 +10,9 @@
 #include <mutex>
 #include <chrono>
 
+// config dialogs
+#include "read_set_dlg.h"
+
 
 ////////////////////////////////////////////////////////////
 // definitions
@@ -171,4 +174,5 @@ public:
 	CEdit m_ctrlEdit_Nbyte;
 	CEdit m_ctrlEdit_Packdelay;
 	CEdit m_ctrlEdit_SlaveAddr;
+	afx_msg void OnBnClickedButtonReadInput();
 };

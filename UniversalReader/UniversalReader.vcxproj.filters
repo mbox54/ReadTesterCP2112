@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="GridRes">
+      <UniqueIdentifier>{6efd81d8-8db3-4a03-aa3f-4f175f31c63f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -45,6 +48,36 @@
     <ClInclude Include="appcore.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="read_set_dlg.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="GridSFF.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\CellRange.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\GridCell.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\GridCellBase.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\GridCtrl.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\GridDropTarget.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\InPlaceEdit.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\MemDC.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridRes\TitleTip.h">
+      <Filter>GridRes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UniversalReaderDlg.cpp">
@@ -64,6 +97,30 @@
     </ClCompile>
     <ClCompile Include="appcore.cpp">
       <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
+    <ClCompile Include="read_set_dlg.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
+    <ClCompile Include="GridSFF.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\GridCell.cpp">
+      <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\GridCellBase.cpp">
+      <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\GridCtrl.cpp">
+      <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\GridDropTarget.cpp">
+      <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\InPlaceEdit.cpp">
+      <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridRes\TitleTip.cpp">
+      <Filter>GridRes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

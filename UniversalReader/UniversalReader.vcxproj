@@ -187,7 +187,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeviceCommunication_CP2112.h" />
+    <ClInclude Include="GridRes\CellRange.h" />
+    <ClInclude Include="GridRes\GridCell.h" />
+    <ClInclude Include="GridRes\GridCellBase.h" />
+    <ClInclude Include="GridRes\GridCtrl.h" />
+    <ClInclude Include="GridRes\GridDropTarget.h" />
+    <ClInclude Include="GridRes\InPlaceEdit.h" />
+    <ClInclude Include="GridRes\MemDC.h" />
+    <ClInclude Include="GridRes\TitleTip.h" />
+    <ClInclude Include="GridSFF.h" />
     <ClInclude Include="ReadTesterDlg.h" />
+    <ClInclude Include="read_set_dlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SLABCP2112.h" />
     <ClInclude Include="stdafx.h" />
@@ -198,7 +208,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeviceCommunication_CP2112.cpp" />
+    <ClCompile Include="GridRes\GridCell.cpp" />
+    <ClCompile Include="GridRes\GridCellBase.cpp" />
+    <ClCompile Include="GridRes\GridCtrl.cpp" />
+    <ClCompile Include="GridRes\GridDropTarget.cpp" />
+    <ClCompile Include="GridRes\InPlaceEdit.cpp" />
+    <ClCompile Include="GridRes\TitleTip.cpp" />
+    <ClCompile Include="GridSFF.cpp" />
     <ClCompile Include="ReadTesterDlg.cpp" />
+    <ClCompile Include="read_set_dlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
