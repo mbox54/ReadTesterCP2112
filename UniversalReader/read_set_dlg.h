@@ -6,6 +6,8 @@
 #include "resource.h"
 #include "GridSFF.h"
 
+#include "DeviceCommunication_CP2112.h"
+
 
 ////////////////////////////////////////////////////////////
 // CReadSetDlg dialog
@@ -30,9 +32,18 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 
+private:
+	void Grid_RewriteValues(void);
+	void Grid_RewriteMask(void);
+
+
 public:
 
 	CGridSFF m_Grid;
+
+	// Grid events
+	afx_msg void OnGridClick(NMHDR* pNotifyStruct, LRESULT* pResult);
+	afx_msg void OnGridEndEdit(NMHDR* pNotifyStruct, LRESULT* pResult);
 
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
@@ -43,4 +54,8 @@ public:
 	afx_msg void OnBnClickedButtonValueApply2();
 	afx_msg void OnBnClickedButtonValueRestore2();
 	afx_msg void OnBnClickedButtonValueReset2();
+
+	virtual BOOL OnInitDialog();
+
+
 };

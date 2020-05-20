@@ -31,6 +31,9 @@ struct st_CP2112ErrStatus g_stCP2112ErrStatus;
 // last warning states
 struct st_CP2112WarnStatus g_stCP2112WarnStatus;
 
+// constants to proceed R/W validation
+struct st_CP2112ValidConditions g_stCP2112ValidConditions;
+
 // current device addr index
 WORD g_usByteAddrIndex = 0;
 

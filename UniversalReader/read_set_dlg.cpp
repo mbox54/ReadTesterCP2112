@@ -46,6 +46,22 @@ END_MESSAGE_MAP()
 // CReadSetDlg message handlers
 
 
+void CReadSetDlg::OnGridClick(NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+}
+
+
+void CReadSetDlg::OnGridEndEdit(NMHDR* pNotifyStruct, LRESULT* pResult)
+{
+	NM_GRIDVIEW* pItem = (NM_GRIDVIEW*)pNotifyStruct;
+
+	// > check Valid Input
+	bool bInvalid = m_Grid.CheckValidHex(pItem->iRow, pItem->iColumn);
+	*pResult = (bInvalid || m_Grid.m_bRejectEditChanges) ? -1 : 0;
+}
+
+
 void CReadSetDlg::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
@@ -93,4 +109,34 @@ void CReadSetDlg::OnBnClickedButtonValueRestore2()
 void CReadSetDlg::OnBnClickedButtonValueReset2()
 {
 	// TODO: Add your control notification handler code here
+}
+
+
+void CReadSetDlg::Grid_RewriteValues(void)
+{
+	m_Grid.GridSFF_Write(g_stCP2112ValidConditions.v_ucConstantTableValues, 0, 256);
+}
+
+
+void CReadSetDlg::Grid_RewriteMask(void)
+{
+
+}
+
+
+BOOL CReadSetDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// TODO:  Add extra initialization here
+	// init Grid
+	m_Grid.Init();
+
+	// output current config in Grid
+	Grid_RewriteValues();
+	Grid_RewriteMask();
+
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+				  // EXCEPTION: OCX Property Pages should return FALSE
 }

@@ -76,6 +76,13 @@ struct st_CP2112WarnStatus
 };
 
 
+struct st_CP2112ValidConditions
+{
+	BYTE v_ucConstantTableValues[256];
+	BYTE v_bConstantTableMask[256];
+};
+
+
 ////////////////////////////////////////////////////////////
 // externs
 ////////////////////////////////////////////////////////////
@@ -85,6 +92,7 @@ extern struct st_CP2112Conf g_stCP2112Conf;
 
 extern struct st_CP2112ErrStatus g_stCP2112ErrStatus;
 extern struct st_CP2112WarnStatus g_stCP2112WarnStatus;
+extern struct st_CP2112ValidConditions g_stCP2112ValidConditions;
 
 
 ////////////////////////////////////////////////////////////
