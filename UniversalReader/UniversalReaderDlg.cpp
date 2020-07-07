@@ -17,43 +17,6 @@
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CAboutDlg dialog used for App About
-class CAboutDlg : public CDialogEx
-{
-public:
-	CAboutDlg();
-
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUTBOX };
-#endif
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-// Implementation
-protected:
-	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnBnClickedOk();
-	virtual BOOL OnInitDialog();
-};
-
-CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
-{
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-	ON_BN_CLICKED(IDOK, &CAboutDlg::OnBnClickedOk)
-END_MESSAGE_MAP()
-
-
-/////////////////////////////////////////////////////////////////////////////
 // CUniversalReaderDlg dialog
 
 CUniversalReaderDlg::CUniversalReaderDlg(CWnd* pParent /*=NULL*/)
@@ -120,17 +83,10 @@ BOOL CUniversalReaderDlg::OnInitDialog()
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
+
 void CUniversalReaderDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
-	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
-	{
-		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();
-	}
-	else
-	{
-		CDialogEx::OnSysCommand(nID, lParam);
-	}
+
 }
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -452,26 +408,8 @@ void CUniversalReaderDlg::OnBnClickedOk()
 }
 
 
-void CAboutDlg::OnBnClickedOk()
-{
-	
-	CDialogEx::OnOK();
-}
-
-
 void CUniversalReaderDlg::OnBnClickedCheckConnect()
 {
 	
 }
 
-
-BOOL CAboutDlg::OnInitDialog()
-{
-	CDialogEx::OnInitDialog();
-
-	// TODO:  Add extra initialization here
-	
-
-	return TRUE;  // return TRUE unless you set the focus to a control
-				  // EXCEPTION: OCX Property Pages should return FALSE
-}

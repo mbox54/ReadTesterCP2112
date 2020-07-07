@@ -16,14 +16,17 @@
     <Filter Include="GridRes">
       <UniqueIdentifier>{6efd81d8-8db3-4a03-aa3f-4f175f31c63f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dlg">
+      <UniqueIdentifier>{ba1f3cb7-47e3-46c1-839f-62a6cd498273}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы исходного кода\Dlg">
+      <UniqueIdentifier>{6e787466-4e4a-405c-9b44-dec0d951a92b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="UniversalReaderDlg.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
@@ -42,13 +45,7 @@
     <ClInclude Include="DeviceCommunication_CP2112.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="ReadTesterDlg.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="appcore.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="read_set_dlg.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="GridSFF.h">
@@ -78,11 +75,20 @@
     <ClInclude Include="GridRes\TitleTip.h">
       <Filter>GridRes</Filter>
     </ClInclude>
+    <ClInclude Include="read_look_dlg.h">
+      <Filter>Dlg</Filter>
+    </ClInclude>
+    <ClInclude Include="read_set_dlg.h">
+      <Filter>Dlg</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadTesterDlg.h">
+      <Filter>Dlg</Filter>
+    </ClInclude>
+    <ClInclude Include="UniversalReaderDlg.h">
+      <Filter>Dlg</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="UniversalReaderDlg.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
@@ -92,13 +98,7 @@
     <ClCompile Include="DeviceCommunication_CP2112.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-    <ClCompile Include="ReadTesterDlg.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="appcore.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
-    <ClCompile Include="read_set_dlg.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
     <ClCompile Include="GridSFF.cpp">
@@ -121,6 +121,18 @@
     </ClCompile>
     <ClCompile Include="GridRes\TitleTip.cpp">
       <Filter>GridRes</Filter>
+    </ClCompile>
+    <ClCompile Include="read_set_dlg.cpp">
+      <Filter>Файлы исходного кода\Dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="read_look_dlg.cpp">
+      <Filter>Файлы исходного кода\Dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadTesterDlg.cpp">
+      <Filter>Файлы исходного кода\Dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="UniversalReaderDlg.cpp">
+      <Filter>Файлы исходного кода\Dlg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,7 @@
 
 // config dialogs
 #include "read_set_dlg.h"
+#include "read_look_dlg.h"
 
 
 ////////////////////////////////////////////////////////////
@@ -175,4 +176,11 @@ public:
 	CEdit m_ctrlEdit_Packdelay;
 	CEdit m_ctrlEdit_SlaveAddr;
 	afx_msg void OnBnClickedButtonReadInput();
+	afx_msg void OnBnClickedButtonBoardDeviceNew();
+	afx_msg void OnBnClickedButtonReadOutput();
+	afx_msg void OnBnClickedButtonReadDefine();
+	afx_msg void OnBnClickedButtonWriteInput2();
+	afx_msg void OnBnClickedButtonWriteOutput2();
+	afx_msg void OnBnClickedButtonWriteDefine();
+	afx_msg void OnBnClickedButtonHelp();
 };

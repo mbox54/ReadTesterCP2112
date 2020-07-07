@@ -9,9 +9,9 @@
 #include "afxdialogex.h"
 #include "read_set_dlg.h"
 
-
+////////////////////////////////////////////////////////////
 // CReadSetDlg dialog
-
+////////////////////////////////////////////////////////////
 IMPLEMENT_DYNAMIC(CReadSetDlg, CDialogEx)
 
 CReadSetDlg::CReadSetDlg(CWnd* pParent /*=nullptr*/)

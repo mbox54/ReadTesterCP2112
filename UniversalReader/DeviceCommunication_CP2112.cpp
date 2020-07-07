@@ -44,7 +44,41 @@ BYTE gv_BufferRead[HID_SMBUS_MAX_READ_REQUEST_SIZE];
 ////////////////////////////////////////////////////////////
 // functions
 ////////////////////////////////////////////////////////////
+// data structures manipulation
+void Structures_CP2112DeviceBuffer_Init(void)
+{
+	g_usByteAddrIndex = 0;
+	memset(gv_BufferRead, 0x00, HID_SMBUS_MAX_READ_REQUEST_SIZE);
+}
 
+
+void Structures_CP2112DeviceConf_Init(void)
+{
+
+}
+
+
+void Structures_CP2112EWStatuses_Init(void)
+{
+
+}
+
+
+void Structures_CP2112ValueTables_Init(void)
+{
+
+}
+
+
+void Structures_CP2112_InitAll(void)
+{
+	Structures_CP2112DeviceBuffer_Init();
+	Structures_CP2112DeviceConf_Init();
+	Structures_CP2112EWStatuses_Init();
+	Structures_CP2112ValueTables_Init();
+}
+
+// *** single proc perform ***
 BYTE DeviceCP2112_Open(WORD usIndex)
 {
 	HID_SMBUS_STATUS status = HidSmbus_Open(&g_hidSmbus, usIndex, VID, PID);
@@ -55,6 +89,9 @@ BYTE DeviceCP2112_Open(WORD usIndex)
 		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
 	}
 	
+	// init vars
+	Structures_CP2112DeviceBuffer_Init();
+
 	return ERROR_COMPLETE_WITHOUT_ERRORS;
 }
 
@@ -169,6 +206,9 @@ BYTE DeviceCP2112_Reset(void)
 		// device connection error while performing
 		return ERROR_DEVICE_FAIL_WHILE_PERFORMING;
 	}
+
+	// reset variables
+
 
 	return ERROR_COMPLETE_WITHOUT_ERRORS;
 }
@@ -291,11 +331,23 @@ BYTE DeviceCP2112_ReadIIC_ForceResponceCheck(WORD usCount)
 		// check
 		if (status != HID_SMBUS_SUCCESS)
 		{
-			// get device connection error while performing
-			bAct = 0;
-			ucErrNo = ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+			if (status == HID_SMBUS_READ_TIMED_OUT)
+			{
+				// busy proceeding
+				// check time
 
-			g_stCP2112ErrStatus.ucLastReportState = status;
+				// timeout
+				bAct = 0;
+				ucErrNo = ERROR_CHIP_READ_TIMEOUT;
+			}
+			else
+			{
+				// get device connection error while performing
+				bAct = 0;
+				ucErrNo = ERROR_DEVICE_FAIL_WHILE_PERFORMING;
+
+				g_stCP2112ErrStatus.ucLastReportState = status;
+			}
 		}
 		else if (status0 == HID_SMBUS_S0_COMPLETE)
 		{
@@ -414,25 +466,11 @@ BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, WORD usCo
 	}
 
 	// issue a read request
+	Sleep(1);
 	ucErrorState = DeviceCP2112_ReadIIC_Request(ucSlaveAddr, usCount);
 	if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
 	{
 		return ERROR_DEVICE_FAIL_WHILE_PERFORMING_REQUEST;
-	}
-
-	// send cmd to return read values
-	ucErrorState = DeviceCP2112_ReadIIC_ForceResponceCheck(usCount);
-	if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
-	{
-		// define error details, skip performing
-		if (ucErrorState == ERROR_DEVICE_FAIL_WHILE_PERFORMING)
-		{
-			return ERROR_DEVICE_FAIL_WHILE_PERFORMING_FORCE;
-		}
-		else
-		{
-			return ucErrorState;
-		}				
 	}
 
 	// get values
@@ -440,12 +478,73 @@ BYTE DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, WORD usCo
 	// up to 61 Byte = MAX_OP_BUFFER
 	// TODO:
 	// Cycle to read all MAX=512 Bytes
-	BYTE ucReceivedCount = 0;
-	BYTE v_roundBuffer[HID_SMBUS_MAX_READ_RESPONSE_SIZE];
-	ucErrorState = DeviceCP2112_ReadIIC_GetData(&ucReceivedCount, v_roundBuffer);
-	if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
+	WORD usBytesRemaining = usCount;
+	while (usBytesRemaining > 0)
 	{
-		return ERROR_DEVICE_FAIL_WHILE_PERFORMING_GET_DATA;
+		// define this roung byte read count
+		BYTE ucBytesRound;
+		if (usBytesRemaining > HID_SMBUS_MAX_READ_RESPONSE_SIZE)
+		{
+			ucBytesRound = HID_SMBUS_MAX_READ_RESPONSE_SIZE;
+		}
+		else
+		{
+			ucBytesRound = usBytesRemaining;
+		}
+		usBytesRemaining -= ucBytesRound;
+
+		// send cmd to return read values
+		Sleep(5 + 4 * (ucBytesRound / 16));
+		ucErrorState = DeviceCP2112_ReadIIC_ForceResponceCheck(ucBytesRound);
+		if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
+		{
+			// define error details, skip performing
+			if (ucErrorState == ERROR_DEVICE_FAIL_WHILE_PERFORMING)
+			{
+				return ERROR_DEVICE_FAIL_WHILE_PERFORMING_FORCE;
+			}
+			else if (ucErrorState == ERROR_CHIP_READ_TIMEOUT)
+			{
+				return ERROR_CHIP_READ_TIMEOUT;
+			}
+			else
+			{
+				return ucErrorState;
+			}
+		}
+
+//		Sleep(100);
+		BYTE ucReceivedCount = 0;
+		BYTE v_roundBuffer[HID_SMBUS_MAX_READ_RESPONSE_SIZE];
+		ucErrorState = DeviceCP2112_ReadIIC_GetData(&ucReceivedCount, v_roundBuffer);
+		if (ucErrorState != ERROR_COMPLETE_WITHOUT_ERRORS)
+		{
+			return ERROR_DEVICE_FAIL_WHILE_PERFORMING_GET_DATA;
+		}
+
+		if (ucReceivedCount != ucBytesRound)
+		{
+			return ERROR_CANT_GET_ALL_READ_BYTES;
+		}
+
+		// store in module static memory for CP2112 device
+		memcpy(gv_BufferRead + g_usByteAddrIndex, v_roundBuffer, ucBytesRound);
+
+		// check byte index overflow
+		if (g_usByteAddrIndex + ucBytesRound < DEVICE_MEMORY_SIZE)
+		{
+			g_usByteAddrIndex += ucBytesRound;
+		}
+		else
+		{
+			// [RELOAD]
+
+			// define index position
+			g_usByteAddrIndex = g_usByteAddrIndex + ucBytesRound - DEVICE_MEMORY_SIZE;
+
+			// correct buffer
+			memcpy(gv_BufferRead, gv_BufferRead + DEVICE_MEMORY_SIZE, g_usByteAddrIndex + 1);
+		}		
 	}
 
 	return ERROR_COMPLETE_WITHOUT_ERRORS;
@@ -460,6 +559,10 @@ BYTE DeviceCP2112_ReadIIC_RANDOM_ADDRESS(BYTE ucSlaveAddr, BYTE ucByteAddr)
 
 BYTE DeviceCP2112_ReadIIC_RANDOM_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, BYTE ucByteAddr, WORD usCount)
 {
+	// init read buffer struct
+	Structures_CP2112DeviceBuffer_Init();
+	g_usByteAddrIndex = ucByteAddr;
+
 	// default error index
 	BYTE ucErrorState = ERROR_UNKNOWN_ERROR;
 

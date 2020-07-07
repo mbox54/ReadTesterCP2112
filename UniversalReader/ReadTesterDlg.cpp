@@ -24,6 +24,62 @@ std::mutex m_mutexCP2112Device;
 
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+// CAboutDlg dialog used for App About
+class CAboutDlg : public CDialogEx
+{
+public:
+	CAboutDlg();
+
+	// Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_ABOUTBOX };
+#endif
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedOk();
+	virtual BOOL OnInitDialog();
+};
+
+CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
+{
+}
+
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_BN_CLICKED(IDOK, &CAboutDlg::OnBnClickedOk)
+END_MESSAGE_MAP()
+
+
+void CAboutDlg::OnBnClickedOk()
+{
+
+	CDialogEx::OnOK();
+}
+
+
+BOOL CAboutDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// TODO:  Add extra initialization here
+
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+				  // EXCEPTION: OCX Property Pages should return FALSE
+}
+
 ////////////////////////////////////////////////////////////
 // CReadTesterDlg dialog
 ////////////////////////////////////////////////////////////
@@ -146,6 +202,13 @@ BEGIN_MESSAGE_MAP(CReadTesterDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_BOARD_REOPEN, &CReadTesterDlg::OnBnClickedButtonBoardReopen)
 	ON_BN_CLICKED(IDC_BUTTON_BOARD_CLOSE, &CReadTesterDlg::OnBnClickedButtonBoardClose)
 	ON_BN_CLICKED(IDC_BUTTON_READ_INPUT, &CReadTesterDlg::OnBnClickedButtonReadInput)
+	ON_BN_CLICKED(IDC_BUTTON_BOARD_DEVICE_NEW, &CReadTesterDlg::OnBnClickedButtonBoardDeviceNew)
+	ON_BN_CLICKED(IDC_BUTTON_READ_OUTPUT, &CReadTesterDlg::OnBnClickedButtonReadOutput)
+	ON_BN_CLICKED(IDC_BUTTON_READ_DEFINE, &CReadTesterDlg::OnBnClickedButtonReadDefine)
+	ON_BN_CLICKED(IDC_BUTTON_WRITE_INPUT2, &CReadTesterDlg::OnBnClickedButtonWriteInput2)
+	ON_BN_CLICKED(IDC_BUTTON_WRITE_OUTPUT2, &CReadTesterDlg::OnBnClickedButtonWriteOutput2)
+	ON_BN_CLICKED(IDC_BUTTON_WRITE_DEFINE, &CReadTesterDlg::OnBnClickedButtonWriteDefine)
+	ON_BN_CLICKED(IDC_BUTTON_HELP, &CReadTesterDlg::OnBnClickedButtonHelp)
 END_MESSAGE_MAP()
 
 
@@ -259,7 +322,14 @@ void CReadTesterDlg::ExperimentStart()
 
 	case ReadIIC_CURRENT_ADDRESS_SEQUENTIAL:
 		Trace(L"case: Read_CURRENT_ADDRESS_SEQUENTIAL\n");		
+		break;
 
+	case ReadIIC_RANDOM_ADDRESS:
+		Trace(L"case: Read_RANDOM_ADDRESS\n");
+		break;
+
+	case ReadIIC_RANDOM_ADDRESS_SEQUENTIAL:
+		Trace(L"case: Read_RANDOM_ADDRESS_SEQUENTIAL\n");
 		break;
 
 
@@ -729,21 +799,19 @@ BYTE ReadDevice_Experiment()
 	switch (m_stIICOpParams.ucMode)
 	{
 	case ReadIIC_CURRENT_ADDRESS:
-
 		ucResult = DeviceCP2112_ReadIIC_CURRENT_ADDRESS(m_stIICOpParams.ucSlaveAddr);		
-
 		break;
 
 	case ReadIIC_CURRENT_ADDRESS_SEQUENTIAL:
-
-		// log OP
-		if (m_stInterfaceParams.bEnableLog)
-		{
-			//OutputLog(L"case: Read_CURRENT_ADDRESS_SEQUENTIAL\n\n");
-		}
-
 		ucResult = DeviceCP2112_ReadIIC_CURRENT_ADDRESS_SEQUENTIAL(m_stIICOpParams.ucSlaveAddr, m_stIICOpParams.usCount);
+		break;
 
+	case ReadIIC_RANDOM_ADDRESS:
+		ucResult = DeviceCP2112_ReadIIC_RANDOM_ADDRESS(m_stIICOpParams.ucSlaveAddr, m_stIICOpParams.ucByteAddr);
+		break;
+
+	case ReadIIC_RANDOM_ADDRESS_SEQUENTIAL:
+		ucResult = DeviceCP2112_ReadIIC_RANDOM_ADDRESS_SEQUENTIAL(m_stIICOpParams.ucSlaveAddr, m_stIICOpParams.ucByteAddr, m_stIICOpParams.usCount);
 		break;
 
 
@@ -797,6 +865,12 @@ BYTE ReadDevice_Experiment()
 
 	}
 	// FORCE READ REQUEST SPECIFIC GROUP
+	else if (ucResult == ERROR_CHIP_READ_TIMEOUT)
+	{
+		OutputLog(L"status: failed. \n *** Chip CP2112 stuttered. It needs more delay between packets to perforn operation! ***\n");
+		OutputLog(L"Note, you need reset chip to continue.\n");
+
+	}
 	else if (ucResult == ERROR_COMPLETE_WITH_ERRORS)
 	{
 		// [SEE STATUS1]
@@ -1159,7 +1233,7 @@ HBRUSH CReadTesterDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
-
+// dialog buttons
 void CReadTesterDlg::OnBnClickedButtonBoardReset()
 {
 	// try to reset
@@ -1184,10 +1258,56 @@ void CReadTesterDlg::OnBnClickedButtonBoardClose()
 }
 
 
+void CReadTesterDlg::OnBnClickedButtonBoardDeviceNew()
+{
+	// reset Slave device current byte addr index
+	Structures_CP2112DeviceBuffer_Init();
+}
+
+
 void CReadTesterDlg::OnBnClickedButtonReadInput()
 {
 	// open config dlg
 	CReadSetDlg dlgReadSet;
 	dlgReadSet.DoModal();
 
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonReadDefine()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonWriteInput2()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonWriteOutput2()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonWriteDefine()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonReadOutput()
+{
+	// open config dlg
+	CReadLookDlg dlgLookSet;
+	dlgLookSet.DoModal();
+}
+
+
+void CReadTesterDlg::OnBnClickedButtonHelp()
+{
+	CAboutDlg dlg;
+	dlg.DoModal();
 }

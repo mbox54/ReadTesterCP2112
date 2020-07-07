@@ -197,6 +197,7 @@
     <ClInclude Include="GridRes\TitleTip.h" />
     <ClInclude Include="GridSFF.h" />
     <ClInclude Include="ReadTesterDlg.h" />
+    <ClInclude Include="read_look_dlg.h" />
     <ClInclude Include="read_set_dlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SLABCP2112.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="GridRes\TitleTip.cpp" />
     <ClCompile Include="GridSFF.cpp" />
     <ClCompile Include="ReadTesterDlg.cpp" />
+    <ClCompile Include="read_look_dlg.cpp" />
     <ClCompile Include="read_set_dlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -23,8 +23,13 @@
 #define VID										0
 #define PID										0
 
-#define MAX_WAIT_TIME_FOR_READ					50
-#define MAX_WAIT_TIME_FOR_WRITE					50
+// use to reload overflow Byte Addr index
+// NOTE: must be lesser than HID_SMBUS_MAX_READ_REQUEST_SIZE now
+// because 'gv_BufferRead' size is set to HID_SMBUS_MAX_READ_REQUEST_SIZE
+#define DEVICE_MEMORY_SIZE						256
+
+#define MAX_WAIT_TIME_FOR_READ					100
+#define MAX_WAIT_TIME_FOR_WRITE					100
 #define MAX_NACK_CASES_FOR_READ					20
 
 #define OP_STATUS_DEVICE_CLOSED					0x20
@@ -40,6 +45,8 @@
 #define ERROR_DEVICE_FAIL_WHILE_PERFORMING_REQUEST	0x10
 #define ERROR_DEVICE_FAIL_WHILE_PERFORMING_FORCE	0x11
 #define ERROR_DEVICE_FAIL_WHILE_PERFORMING_GET_DATA	0x12
+
+#define ERROR_CHIP_READ_TIMEOUT						0x21
 
 #define ERROR_UNKNOWN_ERROR						0xFF
 
@@ -93,11 +100,20 @@ extern struct st_CP2112Conf g_stCP2112Conf;
 extern struct st_CP2112ErrStatus g_stCP2112ErrStatus;
 extern struct st_CP2112WarnStatus g_stCP2112WarnStatus;
 extern struct st_CP2112ValidConditions g_stCP2112ValidConditions;
+extern BYTE gv_BufferRead[HID_SMBUS_MAX_READ_REQUEST_SIZE];
 
 
 ////////////////////////////////////////////////////////////
 // prototypes
 ////////////////////////////////////////////////////////////
+// data structures manipulation
+void Structures_CP2112DeviceBuffer_Init(void);
+void Structures_CP2112DeviceConf_Init(void);
+void Structures_CP2112EWStatuses_Init(void);
+void Structures_CP2112ValueTables_Init(void);
+
+void Structures_CP2112_InitAll(void);
+
 
 // *** single proc perform ***
 WORD DeviceCP2112_GetDeviceCount(void);
@@ -126,3 +142,4 @@ BYTE DeviceCP2112_ReadIIC_RANDOM_ADDRESS_SEQUENTIAL(BYTE ucSlaveAddr, BYTE ucByt
 void DeviceCP2112_OpenStatusUpdate();
 BOOL DeviceCP2112_GetUpdateOpenState();
 BOOL DeviceCP2112_GetLastOpenState();
+
